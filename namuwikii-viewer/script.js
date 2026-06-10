@@ -1,49 +1,57 @@
-function saveHTML() {
+const glow =
+document.querySelector(".cursor-glow");
 
-    const htmlContent =
-        document.documentElement.outerHTML;
+document.addEventListener(
+"mousemove",
+e=>{
+glow.style.left=e.clientX+"px";
+glow.style.top=e.clientY+"px";
+}
+);
 
-    const blob =
-        new Blob(
-            [htmlContent],
-            { type: "text/html" }
-        );
+function saveHTML(){
 
-    const a =
-        document.createElement("a");
+const html =
+document.documentElement.outerHTML;
 
-    a.href =
-        URL.createObjectURL(blob);
+const blob =
+new Blob(
+[html],
+{type:"text/html"}
+);
 
-    a.download =
-        "profile.html";
+const a =
+document.createElement("a");
 
-    a.click();
+a.href =
+URL.createObjectURL(blob);
 
-    URL.revokeObjectURL(a.href);
+a.download =
+"portfolio.html";
+
+a.click();
 }
 
+function saveScreen(){
 
-function saveScreenshot() {
+html2canvas(
+document.querySelector("#captureArea"),
+{
+scale:2
+}
+)
+.then(canvas=>{
 
-    const target =
-        document.getElementById(
-            "captureArea"
-        );
+const link =
+document.createElement("a");
 
-    html2canvas(target, {
-        scale: 2
-    }).then(canvas => {
+link.download =
+"portfolio.png";
 
-        const link =
-            document.createElement("a");
+link.href =
+canvas.toDataURL();
 
-        link.download =
-            "profile-screenshot.png";
+link.click();
 
-        link.href =
-            canvas.toDataURL();
-
-        link.click();
-    });
+});
 }
