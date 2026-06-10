@@ -45,84 +45,65 @@
 <div class="bg-gradient one"></div>
 <div class="bg-gradient two"></div>
 
-<main id="captureArea">
 
-<section class="hero">
+<div class="toolbar">
 
-<div class="avatar">
-<img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43">
-</div>
+<input type="color" id="themeColor" value="#8b5cf6">
 
-<div>
-<p class="tag">AVAILABLE FOR WORK</p>
+<input type="file" id="imageUpload" accept="image/png,image/jpeg">
 
-<h1 contenteditable="true">
-Creative<br>
-Developer
-</h1>
+<button onclick="saveProfile()">
+저장
+</button>
 
-<p class="description" contenteditable="true">
-디자인과 개발을 연결하는
-디지털 크리에이터.
-</p>
-</div>
+<button onclick="loadProfile()">
+불러오기
+</button>
 
-</section>
-
-<section class="grid">
-
-<div class="card large">
-<h2 contenteditable="true">About Me</h2>
-
-<p contenteditable="true">
-자기소개를 입력하세요.
-</p>
-</div>
-
-<div class="card">
-<h2>Skills</h2>
-
-<ul contenteditable="true">
-<li>HTML</li>
-<li>CSS</li>
-<li>JavaScript</li>
-<li>React</li>
-</ul>
-</div>
-
-<div class="card">
-<h2>Contact</h2>
-
-<p contenteditable="true">
-hello@email.com
-</p>
-</div>
-
-<div class="card">
-<h2>Location</h2>
-
-<p contenteditable="true">
-Seoul, Korea
-</p>
-</div>
-
-</section>
-
-<div class="buttons">
+<button onclick="savePNG()">
+PNG 저장
+</button>
 
 <button onclick="saveHTML()">
-Save HTML
+HTML 저장
 </button>
 
-<button onclick="saveScreen()">
-Save Screen
-</button>
+<input
+type="file"
+id="loadFile"
+accept=".json"
+style="display:none">
 
 </div>
 
-</main>
+<div id="card" class="card">
 
-<script src="script.js"></script>
+<img
+id="avatar"
+src="default.png"
+class="avatar">
+
+<h1
+contenteditable="true"
+id="name">
+캐릭터 이름
+</h1>
+
+<p
+contenteditable="true"
+id="title">
+직업 / 종족
+</p>
+
+<div
+contenteditable="true"
+id="description">
+
+캐릭터 소개를 입력하세요.
+
+</div>
+
+</div>
 
 </body>
 </html>
