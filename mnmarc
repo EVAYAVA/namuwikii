@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>나무위키 문서 메이커</title>
+<meta name="description" content="캐릭터 프로필과 일반 문서를 나무위키 형식으로 작성하고, 티스토리 등 HTML 블록에 그대로 붙여넣을 수 있는 HTML로 내보냅니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317191c'/%3E%3Cpath d='M8 10h16M8 16h16M8 22h10' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<!-- ============ 상단 바 ============ -->
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <span class="bt">나무위키 문서 메이커</span>
+  </div>
+  <input type="text" class="docname" id="docname" placeholder="문서 이름" aria-label="문서 이름">
+  <span class="sp"></span>
+  <button type="button" class="btn" id="btn-new">새 문서</button>
+  <button type="button" class="btn" id="btn-open">불러오기</button>
+  <button type="button" class="btn" id="btn-save">저장</button>
+  <button type="button" class="btn" id="btn-help">도움말</button>
+  <button type="button" class="btn" id="btn-preview" title="새 창에서 클릭 동작·모바일·반응형을 확인합니다">미리보기 창</button>
+  <button type="button" class="btn primary" id="btn-export">HTML 내보내기</button>
+</header>
+
+<!-- ============ 서식 도구모음 ============ -->
+<div class="formatbar" id="formatbar" role="toolbar" aria-label="서식">
+  <div class="grp">
+    <button type="button" class="tb b" data-fmt="bold" title="굵게 (Ctrl+B)">B</button>
+    <button type="button" class="tb i" data-fmt="italic" title="기울임 (Ctrl+I)">I</button>
+    <button type="button" class="tb u" data-fmt="underline" title="밑줄 (Ctrl+U)">U</button>
+    <button type="button" class="tb s" data-fmt="strike" title="취소선">S</button>
+    <button type="button" class="tb" data-fmt="sup" title="위 첨자">x²</button>
+    <button type="button" class="tb" data-fmt="sub" title="아래 첨자">x₂</button>
+  </div>
+  <div class="grp">
+    <label class="tb color" title="글자 색"><span class="swatch" style="background:#c2255c"></span><input type="color" id="fmt-color" value="#c2255c"></label>
+    <label class="tb color" title="글자 배경"><span class="swatch bg" style="background:#fff3bf"></span><input type="color" id="fmt-bg" value="#fff3bf"></label>
+    <select class="tb sel" id="fmt-size" title="글자 크기" aria-label="글자 크기"></select>
+  </div>
+  <div class="grp">
+    <button type="button" class="tb" data-fmt="ul" title="글머리 기호 목록">• 목록</button>
+    <button type="button" class="tb" data-fmt="ol" title="번호 목록">1. 목록</button>
+    <button type="button" class="tb" data-fmt="left" title="왼쪽 정렬">⇤</button>
+    <button type="button" class="tb" data-fmt="center" title="가운데 정렬">≡</button>
+    <button type="button" class="tb" data-fmt="right" title="오른쪽 정렬">⇥</button>
+  </div>
+  <div class="grp">
+    <button type="button" class="tb" id="ins-link" title="링크 (어떤 주소든 가능)">링크</button>
+    <button type="button" class="tb" id="ins-image" title="사진">사진</button>
+    <button type="button" class="tb" id="ins-embed" title="유튜브 영상">영상</button>
+    <button type="button" class="tb" id="ins-table" title="표">표</button>
+  </div>
+  <div class="grp">
+    <button type="button" class="tb" id="ins-quote" title="인용구">인용구</button>
+    <button type="button" class="tb" id="ins-notice" title="경고 · 안내 문구">경고문</button>
+    <button type="button" class="tb" id="ins-fn" title="각주">각주</button>
+    <button type="button" class="tb" id="ins-spoiler" title="스포일러 가리기">스포일러</button>
+    <button type="button" class="tb" id="ins-hr" title="구분선">구분선</button>
+  </div>
+  <div class="grp">
+    <button type="button" class="tb" data-fmt="clear" title="서식 지우기">서식 지우기</button>
+  </div>
+</div>
+
+<div class="tablebar" id="tablebar" hidden>
+  <span class="lbl">표 편집</span>
+  <button type="button" class="tb" data-tbl="row+">행 추가</button>
+  <button type="button" class="tb" data-tbl="row-">행 삭제</button>
+  <button type="button" class="tb" data-tbl="col+">열 추가</button>
+  <button type="button" class="tb" data-tbl="col-">열 삭제</button>
+  <button type="button" class="tb" data-tbl="head">제목 행 전환</button>
+  <button type="button" class="tb" data-tbl="bg">칸 배경색</button>
+  <button type="button" class="tb danger" data-tbl="del">표 삭제</button>
+</div>
+
+<!-- ============ 본체 ============ -->
+<main>
+  <aside class="side">
+    <div class="side-tabs" id="side-tabs" role="tablist">
+      <button type="button" data-tab="struct" aria-pressed="true">구조</button>
+      <button type="button" data-tab="profile" aria-pressed="false">프로필</button>
+      <button type="button" data-tab="design" aria-pressed="false">디자인</button>
+      <button type="button" data-tab="doc" aria-pressed="false">문서</button>
+    </div>
+    <div class="side-body" id="side-body"></div>
+  </aside>
+
+  <section class="docpane">
+    <div class="docpane-head">
+      <b>문서</b>
+      <span class="muted">여기에 직접 입력하세요. 보이는 그대로 내보내집니다.</span>
+      <span class="sp"></span>
+      <span class="stat">챕터 <b id="st-secs">0</b></span>
+      <span class="stat">각주 <b id="st-fns">0</b></span>
+      <select id="doc-width" aria-label="문서 폭">
+        <option value="">기본 폭 (1000px)</option>
+        <option value="w-tablet">태블릿 (720px)</option>
+        <option value="w-mobile">모바일 (400px)</option>
+        <option value="w-full">전체 폭</option>
+      </select>
+      <span class="stat" id="st-save">자동 저장됨</span>
+    </div>
+    <div class="doc-scroll" id="doc-scroll">
+      <div class="doc-frame" id="doc-frame">
+        <div id="nw-doc"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ 내보내기 ============ -->
+<div class="modal" id="modal-export" role="dialog" aria-modal="true" aria-labelledby="ex-title">
+  <div class="modal-box">
+    <div class="modal-head"><h2 id="ex-title">HTML 내보내기</h2><span class="sp"></span><button type="button" class="btn ghost" data-close>닫기</button></div>
+    <div class="modal-body">
+      <div class="opt-row">
+        <label><input type="radio" name="exmode" value="fragment" checked> 티스토리 · 블로그 붙여넣기용 <b>(권장)</b></label>
+        <label><input type="radio" name="exmode" value="page"> 단독 HTML 파일</label>
+      </div>
+      <div class="opt-row">
+        <label><input type="checkbox" id="ex-style" checked> &lt;style&gt; 태그 포함 (호버 스포일러 · 화살표 · 모바일 대응)</label>
+        <label><input type="checkbox" id="ex-script" checked> 각주 팝업 위치 보정 스크립트 포함 (약 1.4KB)</label>
+      </div>
+      <textarea id="outcode" readonly spellcheck="false" aria-label="내보낸 HTML"></textarea>
+      <p class="hint">
+        티스토리 글쓰기 화면 오른쪽 위 <b>기본모드 → HTML</b> 로 바꾼 뒤 붙여넣으세요.
+        모든 스타일이 <code>style=""</code> 로 들어가 있어 <code>&lt;style&gt;</code>·<code>&lt;script&gt;</code> 가
+        제거되는 편집기에서도 그대로 보이고, 접기는 <code>&lt;details&gt;</code> 라 자바스크립트 없이 동작합니다.
+        보정 스크립트는 각주 팝업을 번호 바로 아래에 놓기 위한 것으로, 없어도 팝업은 문단 가운데에 정상적으로 뜹니다.
+      </p>
+    </div>
+    <div class="modal-foot"><span class="hint" id="ex-size"></span><span class="sp"></span>
+      <button type="button" class="btn" id="ex-download">파일로 저장</button>
+      <button type="button" class="btn primary" id="ex-copy">코드 복사</button></div>
+  </div>
+</div>
+
+<!-- ============ 문서 목록 ============ -->
+<div class="modal" id="modal-open" role="dialog" aria-modal="true" aria-labelledby="op-title">
+  <div class="modal-box">
+    <div class="modal-head"><h2 id="op-title">저장한 문서</h2><span class="sp"></span><button type="button" class="btn ghost" data-close>닫기</button></div>
+    <div class="modal-body">
+      <div class="opt-row">
+        <button type="button" class="btn" id="btn-sample">예시: 프로필 문서</button>
+        <button type="button" class="btn" id="btn-sample-plain">예시: 일반 문서</button>
+      </div>
+      <ul class="doclist" id="doclist"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 도움말 ============ -->
+<div class="modal" id="modal-help" role="dialog" aria-modal="true" aria-labelledby="hp-title">
+  <div class="modal-box">
+    <div class="modal-head"><h2 id="hp-title">사용법</h2><span class="sp"></span><button type="button" class="btn ghost" data-close>닫기</button></div>
+    <div class="modal-body help">
+      <h3>기본</h3>
+      <ul>
+        <li>가운데 문서 영역을 <b>직접 클릭해서 바로 입력</b>합니다. 문법을 외울 필요가 없습니다.</li>
+        <li>글자를 선택한 뒤 위 도구모음을 누르면 굵게 · 색 · 크기 등이 적용됩니다. <code>Ctrl+B / I / U</code> 도 됩니다.</li>
+        <li>보이는 화면이 곧 내보내기 결과입니다.</li>
+      </ul>
+      <h3>미리보기 창</h3>
+      <ul>
+        <li>위쪽 <b>미리보기 창</b> 버튼을 누르면 새 창이 열립니다. 편집 표시가 없는 <b>실제 결과물</b>이 그대로 뜹니다.</li>
+        <li>폭 버튼(모바일 390 · 큰 폰 540 · 태블릿 768 · 노트북 1280 · 창 전체)으로 <b>반응형</b>을 확인합니다. 640px 이하가 되면 각주 팝업이 화면 아래 시트로 바뀝니다.</li>
+        <li><b>터치 기기처럼</b>을 켜면 각주 번호를 눌러도 하단으로 이동하지 않고 팝업만 열립니다. 휴대폰과 같은 동작입니다.</li>
+        <li>각주 · 챕터 제목 · 접기 · 스포일러를 <b>실제로 눌러 볼 수 있습니다</b>. 각주를 눌러 하단으로 내려가도 편집 화면으로 빠져나가지 않습니다.</li>
+        <li>편집 내용을 바꾼 뒤에는 <b>다시 불러오기</b>를 누르세요.</li>
+      </ul>
+
+      <h3>챕터</h3>
+      <ul>
+        <li>왼쪽 <b>구조</b> 탭에서 챕터를 추가하고 순서를 바꿉니다.</li>
+        <li><b>＋</b> 는 그 챕터의 하위 챕터를 만듭니다. 하위의 하위도 단계 제한 없이 만들 수 있습니다.</li>
+        <li><b>⇥</b> 는 바로 위 챕터의 하위로 넣고, <b>⇤</b> 는 다시 한 단계 위로 꺼냅니다.</li>
+        <li>목차와 번호는 자동으로 만들어집니다. 챕터 제목을 누르면 하위 챕터까지 함께 접힙니다.</li>
+      </ul>
+      <h3>프로필 표</h3>
+      <ul>
+        <li>목차 옆 <b>별도 구역</b>에 놓이므로 표가 아무리 길어져도 본문을 밀지 않습니다.</li>
+        <li>왼쪽 <b>프로필</b> 탭에서 이미지 · 가로 폭 · 항목칸 폭 · 위치를 조절하고, 묶음과 항목을 추가합니다.</li>
+        <li>목차의 가로 폭은 <b>디자인</b> 탭에서 조절합니다. 기본값은 남는 공간을 모두 채우고, 폭을 줄이면 목차와 프로필 표가 <b>양 끝으로 벌어집니다</b>.</li>
+        <li>접히는 묶음은 편집 화면에서도 <b>접힌 상태</b>로 시작합니다. 눌러서 펼친 뒤 고치면 됩니다.</li>
+        <li>항목 이름과 내용은 표에서 직접 고칩니다. 색 · 링크 · 각주 · 스포일러 모두 사용할 수 있습니다.</li>
+        <li>묶음 종류를 <b>접히는 묶음</b>으로 바꾸면 표 안에서 접고 펼 수 있습니다.</li>
+      </ul>
+      <h3>넣을 수 있는 것</h3>
+      <ul>
+        <li><b>링크</b> — 어떤 주소든 넣을 수 있고, 나무위키 문서명만 적어 자동으로 주소를 만들 수도 있습니다.</li>
+        <li><b>사진 · 영상 · 표 · 인용구 · 경고문 · 각주 · 스포일러 · 구분선</b></li>
+        <li>이미 넣은 인용구 · 경고문 · 사진 · 영상 안에 커서를 두고 같은 버튼을 다시 누르면 <b>수정</b>됩니다.</li>
+        <li>각주는 번호를 클릭하면 내용을 고치거나 지울 수 있고, 번호는 항상 자동으로 다시 매겨집니다.</li>
+        <li>각주 내용에도 <b>굵게 · 기울임 · 밑줄 · 취소선 · 색 · 링크 · 스포일러</b>를 넣을 수 있습니다. 각주 창 위쪽의 작은 도구모음을 쓰세요.</li>
+        <li>문서 아래 <b>각주 모음</b>은 제목을 눌러 접고 펼칠 수 있습니다. <b>디자인</b> 탭에서 처음부터 접힌 채로 시작하게 할 수도 있고, 접혀 있어도 각주 번호를 누르면 저절로 펼쳐집니다.</li>
+        <li>각주 번호에 <b>마우스를 올리면</b> 번호 바로 아래에 팝업이 뜹니다. 본문 폭을 넘칠 자리에서는 안쪽으로 살짝 밀려 잘리지 않습니다.</li>
+        <li>PC에서 번호를 <b>누르면 하단 각주로 이동</b>하고, 해당 각주가 잠시 강조됐다 사라집니다. 하단 각주의 번호를 누르면 본문 자리로 돌아옵니다.</li>
+        <li>휴대폰에서는 번호를 누르면 화면 아래에 팝업이 뜨고(바깥을 누르면 닫힘), 팝업 안의 <b>하단 각주로 이동</b> 버튼으로 내려갑니다.</li>
+        <li>사진은 <b>왼쪽 · 가운데 · 오른쪽</b> 정렬을 고르고, <b>사진마다 가로 크기</b>를 따로 정할 수 있습니다(px 또는 %).</li>
+        <li>넣은 <b>사진이나 영상을 누르면</b> 크기 · 정렬 · 설명을 고치는 창이 바로 열립니다.</li>
+        <li>경고문 아이콘은 <b>구글 머티리얼 아이콘</b> 중에서 고르거나 이모지를 직접 넣을 수 있습니다.</li>
+      </ul>
+      <h3>색 바꾸기</h3>
+      <ul>
+        <li>왼쪽 <b>디자인</b> 탭에서 문서 강조색 하나만 바꿔도 제목 · 목차 · 프로필 표 · 인용구 색이 함께 맞춰집니다.</li>
+        <li>각 항목을 따로 지정할 수도 있고, 칸을 비우면 강조색 기준으로 되돌아갑니다.</li>
+        <li>개별 인용구 · 경고문은 그 블록에 커서를 두고 도구모음에서 색을 따로 줄 수 있습니다.</li>
+      </ul>
+      <h3>분류와 경고 문구</h3>
+      <ul>
+        <li>왼쪽 <b>문서</b> 탭에서 분류를 추가하면 문서 <b>맨 위</b>에 표시됩니다.</li>
+        <li>같은 탭에서 PC 열람 권장 · 스포일러 주의 · 트리거 워닝 문구를 문서 상단에 넣고 색을 바꿀 수 있습니다.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 입력 다이얼로그 ============ -->
+<div class="modal" id="modal-form" role="dialog" aria-modal="true" aria-labelledby="form-title">
+  <div class="modal-box narrow">
+    <div class="modal-head"><h2 id="form-title"></h2></div>
+    <div class="modal-body" id="form-body"></div>
+    <div class="modal-foot"><span class="sp"></span>
+      <button type="button" class="btn" id="form-cancel">취소</button>
+      <button type="button" class="btn primary" id="form-ok">확인</button></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/js/renderer.js"></script>
+<script src="assets/js/editor.js"></script>
+<script src="assets/js/samples.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
